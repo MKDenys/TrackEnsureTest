@@ -1,5 +1,6 @@
 package com.example.trackensuretest;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -11,7 +12,7 @@ import java.util.List;
 @Dao
 public interface GasStationDao {
     @Query("SELECT * FROM GasStation")
-    List<GasStation> getAll();
+    LiveData<List<GasStation>> getAll();
 
     @Query("DELETE FROM GasStation")
     void deleteAll();

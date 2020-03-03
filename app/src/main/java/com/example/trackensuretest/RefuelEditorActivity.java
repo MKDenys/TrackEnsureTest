@@ -16,6 +16,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -43,7 +44,10 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
     private EditText amountEditText;
     private EditText priceEditText;
     private Button saveButton;
+    private Button closeButton;
     private GasStation gasStationToSave;
+    private Refuel oldRefuel;
+    private boolean isEdit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,27 +61,31 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
         amountEditText = findViewById(R.id.fuel_amount_editText);
         priceEditText = findViewById(R.id.price_editText);
         saveButton = findViewById(R.id.save_button);
-        saveButton.setOnClickListener(saveButtonClick);
+        closeButton = findViewById(R.id.close_button);
 
-        Refuel refuel = null;
+        saveButton.setOnClickListener(saveButtonClick);
+        closeButton.setOnClickListener(closeButtonClick);
+
+        gasStationToSave = null;
+        isEdit = false;
+        oldRefuel = null;
         try {
-            refuel = (Refuel) getIntent().getExtras().get("refuel");
+            oldRefuel = (Refuel) getIntent().getExtras().get("refuel");
+            isEdit = true;
         } catch (Exception ex) {}
 
-        if (refuel != null){
-            fuelSupplierEditText.setText(refuel.getFuelSupplierName());
-            fuelTypeSpinner.setSelection(FuelType.valueOf(refuel.getFuelType()).ordinal());
-            amountEditText.setText(String.valueOf(refuel.getAmount()));
-            priceEditText.setText(String.valueOf(refuel.getPrice()));
+        if (oldRefuel != null){
+            fuelSupplierEditText.setText(oldRefuel.getFuelSupplierName());
+            fuelTypeSpinner.setSelection(FuelType.valueOf(oldRefuel.getFuelType()).ordinal());
+            amountEditText.setText(String.valueOf(oldRefuel.getAmount()));
+            priceEditText.setText(String.valueOf(oldRefuel.getPrice()));
 
             AppDatabase appDatabase = App.getInstance().getAppDatabase();
-            gasStationToSave = appDatabase.gasStationDao().getById(refuel.getGasStationId());
+            gasStationToSave = appDatabase.gasStationDao().getById(oldRefuel.getGasStationId());
         }
-
 
         initGoogleMap(savedInstanceState);
         context = this;
-        gasStationToSave = null;
     }
 
     private void initGoogleMap(Bundle savedInstanceState) {
@@ -143,15 +151,19 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(TEST_LATITUDE, TEST_LONGITUDE), MAP_ZOOM));
         AppDatabase appDatabase = App.getInstance().getAppDatabase();
         GasStationDao gasStationDao = appDatabase.gasStationDao();
-        List<GasStation> gasStationList = gasStationDao.getAll();
-        if (gasStationList.size() > 0){
-            for (int i = 0; i < gasStationList.size(); i++) {
-                GasStation gasStation = gasStationList.get(i);
-                googleMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(gasStation.getLatitude(), gasStation.getLongitude()))
-                        .title(gasStation.getName()));
+        gasStationDao.getAll().observe(this, new Observer<List<GasStation>>() {
+            @Override
+            public void onChanged(List<GasStation> gasStationList) {
+                if (gasStationList.size() > 0){
+                    for (int i = 0; i < gasStationList.size(); i++) {
+                        GasStation gasStation = gasStationList.get(i);
+                        googleMap.addMarker(new MarkerOptions()
+                                .position(new LatLng(gasStation.getLatitude(), gasStation.getLongitude()))
+                                .title(gasStation.getName()));
+                    }
+                }
             }
-        }
+        });
     }
 
     @Override
@@ -183,7 +195,6 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-
                 String gasStationAddress = getAddressFromCoordinates(context, latLng.latitude, latLng.longitude);
                 if (gasStationAddress != null) {
                     GasStation gasStation = new GasStation(String.valueOf(input.getText()), gasStationAddress,
@@ -191,10 +202,7 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
                     AppDatabase appDatabase = App.getInstance().getAppDatabase();
                     GasStationDao gasStationDao = appDatabase.gasStationDao();
                     gasStationDao.insert(gasStation);
-
-                    /*GasStation gasStation = new GasStation(String.valueOf(input.getText()), gasStationAddress);
-                    SaveGasStation saveGasStation = new SaveGasStation();
-                    saveGasStation.execute(gasStation);*/
+                    gasStationToSave = gasStation;
 
                     googleMap.addMarker(new MarkerOptions()
                             .position(latLng)
@@ -227,7 +235,12 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
                             gasStationToSave.getId());
                     AppDatabase appDatabase = App.getInstance().getAppDatabase();
                     RefuelDao refuelDao = appDatabase.refuelDao();
-                    refuelDao.insert(refuel);
+                    if (isEdit){
+                        refuel.setId(oldRefuel.getId());
+                        refuelDao.update(refuel);
+                    } else {
+                        refuelDao.insert(refuel);
+                    }
                     Intent intent = new Intent(context, MainActivity.class);
                     startActivity(intent);
                 } else {
@@ -239,6 +252,13 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
         }
     };
 
+    private final View.OnClickListener closeButtonClick = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            finish();
+        }
+    };
+
     @Override
     public boolean onMarkerClick(Marker marker) {
         AppDatabase appDatabase = App.getInstance().getAppDatabase();
@@ -246,23 +266,4 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
         gasStationToSave = gasStationDao.getByName(marker.getTitle());
         return false;
     }
-
-   /* class SaveGasStation extends AsyncTask<GasStation, Void, Void> {
-
-        @Override
-        protected Void doInBackground(GasStation... gasStations) {
-            AppDatabase appDatabase = App.getInstance().getAppDatabase();
-            GasStationDao gasStationDao = appDatabase.gasStationDao();
-            gasStationDao.insert(gasStations[0]);
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            finish();
-            //startActivity(new Intent(getApplicationContext(), MainActivity.class));
-            Toast.makeText(context, "Saved", Toast.LENGTH_LONG).show();
-        }
-    }*/
 }

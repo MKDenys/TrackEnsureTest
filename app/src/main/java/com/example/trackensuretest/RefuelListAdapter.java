@@ -34,11 +34,15 @@ public class RefuelListAdapter extends RecyclerView.Adapter<RefuelListAdapter.Vi
         holder.fuelSupplierName.setText(item.getFuelSupplierName());
         holder.fuelType.setText(item.getFuelType());
         holder.amount.setText(String.valueOf(item.getAmount()));
-        holder.cost.setText(String.valueOf(item.getCost()));
+        holder.cost.setText(String.format("%.2f", item.getCost()));
 
         holder.del.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                AppDatabase appDatabase = App.getInstance().getAppDatabase();
+                RefuelDao refuelDao = appDatabase.refuelDao();
+                refuelDao.delete(item);
+                refuelList.remove(item);
                 notifyItemRemoved(position);
             }
         });
@@ -47,6 +51,7 @@ public class RefuelListAdapter extends RecyclerView.Adapter<RefuelListAdapter.Vi
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, RefuelEditorActivity.class);
+                intent.putExtra("isEdit", true);
                 intent.putExtra("refuel", (Serializable) item);
                 context.startActivity(intent);
             }
