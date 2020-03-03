@@ -50,7 +50,7 @@
             android:orientation="vertical">
 
             <EditText
-                android:id="@+id/fuel_amount_TextInput"
+                android:id="@+id/fuel_amount_editText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -59,7 +59,7 @@
                 android:inputType="numberDecimal" />
 
             <EditText
-                android:id="@+id/price_TextInput"
+                android:id="@+id/price_editText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

@@ -44,15 +44,13 @@ public class RefuelListFragment extends PlaceholderFragment {
         recyclerView = root.findViewById(R.id.recyclerviev);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        /*List<Refuel> refuelList = new ArrayList<>();
-        GasStation gasStation = new GasStation("station ONE", "1111");
-        for (int i = 0; i < 10; i++){
-            Refuel refuel = new Refuel("DDD", FuelType.DIESEL, 3.9 + i, 1.04, gasStation);
-            refuelList.add(refuel);
-        }
+        AppDatabase appDatabase = App.getInstance().getAppDatabase();
+        RefuelDao refuelDao = appDatabase.refuelDao();
+        List<Refuel> refuelList = refuelDao.getAll();
 
-        refuelListAdapter = new RefuelListAdapter(refuelList);
-        recyclerView.setAdapter(refuelListAdapter);*/
+
+        refuelListAdapter = new RefuelListAdapter(getActivity(), refuelList);
+        recyclerView.setAdapter(refuelListAdapter);
 
         return root;
     }

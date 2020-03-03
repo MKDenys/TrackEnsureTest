@@ -13,8 +13,14 @@ public interface GasStationDao {
     @Query("SELECT * FROM GasStation")
     List<GasStation> getAll();
 
-    @Query("SELECT MAX(id) FROM GasStation")
-    int getMaxId();
+    @Query("DELETE FROM GasStation")
+    void deleteAll();
+
+    @Query("SELECT * FROM GasStation WHERE name = :name")
+    GasStation getByName(String name);
+
+    @Query("SELECT * FROM GasStation WHERE id = :id")
+    GasStation getById(int id);
 
     @Insert
     void insert(GasStation gasStation);
@@ -24,5 +30,4 @@ public interface GasStationDao {
 
     @Delete
     void delete(GasStation gasStation);
-
 }

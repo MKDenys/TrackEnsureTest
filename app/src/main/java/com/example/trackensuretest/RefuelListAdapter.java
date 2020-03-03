@@ -1,17 +1,23 @@
 package com.example.trackensuretest;
 
+import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.io.Serializable;
 import java.util.List;
 
 public class RefuelListAdapter extends RecyclerView.Adapter<RefuelListAdapter.ViewHolder> {
     private List<Refuel> refuelList;
+    private Context context;
 
-    public RefuelListAdapter(List<Refuel> refuelList) {
+    public RefuelListAdapter(Context context, List<Refuel> refuelList) {
+        this.context = context;
         this.refuelList = refuelList;
     }
 
@@ -26,7 +32,7 @@ public class RefuelListAdapter extends RecyclerView.Adapter<RefuelListAdapter.Vi
         final Refuel item = refuelList.get(position);
 
         holder.fuelSupplierName.setText(item.getFuelSupplierName());
-        holder.fuelType.setText(item.getFuelType().toString());
+        holder.fuelType.setText(item.getFuelType());
         holder.amount.setText(String.valueOf(item.getAmount()));
         holder.cost.setText(String.valueOf(item.getCost()));
 
@@ -40,7 +46,9 @@ public class RefuelListAdapter extends RecyclerView.Adapter<RefuelListAdapter.Vi
         holder.edit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(context, RefuelEditorActivity.class);
+                intent.putExtra("refuel", (Serializable) item);
+                context.startActivity(intent);
             }
         });
     }

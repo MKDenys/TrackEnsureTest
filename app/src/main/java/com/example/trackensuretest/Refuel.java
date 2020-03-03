@@ -1,19 +1,35 @@
 package com.example.trackensuretest;
 
-public class Refuel {
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
+import java.io.Serializable;
+
+@Entity
+public class Refuel implements Serializable {
+
+    @PrimaryKey(autoGenerate = true)
+    private int id;
     private String fuelSupplierName;
-    private FuelType fuelType;
+    private String fuelType;
     private double amount;
     private double price;
-    private GasStation gasStation;
+    private int gasStationId;
 
-    public Refuel (String fuelSupplierName, FuelType fuelType, double amount, double price, GasStation gasStation){
+    public Refuel (String fuelSupplierName, String fuelType, double amount, double price, int gasStationId){
         this.fuelSupplierName = fuelSupplierName;
         this.fuelType = fuelType;
         this.amount = amount;
         this.price = price;
-        this.gasStation = gasStation;
+        this.gasStationId = gasStationId;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getFuelSupplierName() {
@@ -24,11 +40,11 @@ public class Refuel {
         this.fuelSupplierName = fuelSupplierName;
     }
 
-    public FuelType getFuelType() {
+    public String getFuelType() {
         return fuelType;
     }
 
-    public void setFuelType(FuelType fuelType) {
+    public void setFuelType(String fuelType) {
         this.fuelType = fuelType;
     }
 
@@ -52,11 +68,11 @@ public class Refuel {
         this.price = price;
     }
 
-    public GasStation getGasStation() {
-        return gasStation;
+    public int getGasStationId() {
+        return gasStationId;
     }
 
-    public void setGasStation(GasStation gasStation) {
-        this.gasStation = gasStation;
+    public void setGasStationId(int gasStationId) {
+        this.gasStationId = gasStationId;
     }
 }
