@@ -12,14 +12,17 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.example.trackensuretest.ui.main.SectionsPagerAdapter;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
+
+    private FirebaseAuth firebaseAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,8 +35,9 @@ public class MainActivity extends AppCompatActivity {
         tabs.setupWithViewPager(viewPager);
         Button signOutButton = findViewById(R.id.sing_out_button);
         signOutButton.setOnClickListener(signOutButtonClick);
+        firebaseAuth = FirebaseAuth.getInstance();
         registerConnectionReceiver();
-        checkGoogleAccount();
+        checkFirebaseUser();
     }
 
     private void registerConnectionReceiver(){
@@ -43,9 +47,9 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(receiver, intentFilter);
     }
 
-    private void checkGoogleAccount(){
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        if (account == null) {
+    private void checkFirebaseUser(){
+        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+        if (currentUser == null) {
             Intent intent = new Intent(this, SignInActivity.class);
             startActivity(intent);
         }
@@ -59,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void signOut(){
+        FirebaseAuth.getInstance().signOut();
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .build();
@@ -67,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                        checkGoogleAccount();
+                        checkFirebaseUser();
                     }
                 });
     }

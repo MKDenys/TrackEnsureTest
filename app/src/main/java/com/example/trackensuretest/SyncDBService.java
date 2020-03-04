@@ -6,10 +6,13 @@ import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class SyncDBService extends IntentService {
+    private static final String TAG = "SyncDBService";
 
     public SyncDBService() {
-        super("SyncDBService");
+        super(TAG);
     }
 
     @Override
@@ -20,4 +23,9 @@ public class SyncDBService extends IntentService {
 
         }
     }
+
+    public String getUid() {
+        return FirebaseAuth.getInstance().getCurrentUser().getUid();
+    }
+
 }
