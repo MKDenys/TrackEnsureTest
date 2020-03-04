@@ -149,6 +149,7 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
         googleMap.setOnMapLongClickListener(this);
         googleMap.setOnMarkerClickListener(this);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(TEST_LATITUDE, TEST_LONGITUDE), MAP_ZOOM));
+
         AppDatabase appDatabase = App.getInstance().getAppDatabase();
         GasStationDao gasStationDao = appDatabase.gasStationDao();
         gasStationDao.getAll().observe(this, new Observer<List<GasStation>>() {

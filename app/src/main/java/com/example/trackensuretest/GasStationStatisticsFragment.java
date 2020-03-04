@@ -47,6 +47,7 @@ public class GasStationStatisticsFragment extends PlaceholderFragment{
                 fillTable();
             }
         });
+
         return root;
     }
 

@@ -51,7 +51,6 @@ public class RefuelListAdapter extends RecyclerView.Adapter<RefuelListAdapter.Vi
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, RefuelEditorActivity.class);
-                intent.putExtra("isEdit", true);
                 intent.putExtra("refuel", (Serializable) item);
                 context.startActivity(intent);
             }
