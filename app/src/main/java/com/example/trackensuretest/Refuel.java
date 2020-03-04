@@ -3,20 +3,24 @@ package com.example.trackensuretest;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
 import java.io.Serializable;
 
+@IgnoreExtraProperties
 @Entity
 public class Refuel implements Serializable {
 
     @PrimaryKey(autoGenerate = true)
-    private int id;
+    private long id;
     private String fuelSupplierName;
     private String fuelType;
     private double amount;
     private double price;
-    private int gasStationId;
+    private long gasStationId;
 
-    public Refuel (String fuelSupplierName, String fuelType, double amount, double price, int gasStationId){
+    public Refuel (long id, String fuelSupplierName, String fuelType, double amount, double price, long gasStationId){
+        this.id = id;
         this.fuelSupplierName = fuelSupplierName;
         this.fuelType = fuelType;
         this.amount = amount;
@@ -24,11 +28,14 @@ public class Refuel implements Serializable {
         this.gasStationId = gasStationId;
     }
 
-    public int getId() {
+    public Refuel() {
+    }
+
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -68,11 +75,11 @@ public class Refuel implements Serializable {
         this.price = price;
     }
 
-    public int getGasStationId() {
+    public long getGasStationId() {
         return gasStationId;
     }
 
-    public void setGasStationId(int gasStationId) {
+    public void setGasStationId(long gasStationId) {
         this.gasStationId = gasStationId;
     }
 }

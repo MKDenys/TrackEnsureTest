@@ -6,8 +6,6 @@ import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 
-import com.google.firebase.auth.FirebaseAuth;
-
 public class SyncDBService extends IntentService {
     private static final String TAG = "SyncDBService";
 
@@ -22,10 +20,6 @@ public class SyncDBService extends IntentService {
         if (isNetworkConnected){
 
         }
-    }
-
-    public String getUid() {
-        return FirebaseAuth.getInstance().getCurrentUser().getUid();
     }
 
 }

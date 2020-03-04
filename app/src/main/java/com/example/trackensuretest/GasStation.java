@@ -3,28 +3,32 @@ package com.example.trackensuretest;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
+@IgnoreExtraProperties
 @Entity
 public class GasStation {
 
     @PrimaryKey(autoGenerate = true)
-    private int id;
+    private long id;
     private String name;
     private String address;
     private double latitude;
     private double longitude;
 
-    public GasStation(String name, String address, double latitude, double longitude) {
+    public GasStation(long id, String name, String address, double latitude, double longitude) {
+        this.id = id;
         this.name = name;
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 

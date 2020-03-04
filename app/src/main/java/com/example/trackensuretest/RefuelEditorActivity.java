@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 
@@ -25,6 +26,12 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.util.List;
@@ -36,6 +43,8 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
     public static final double TEST_LATITUDE = 50.44;
     public static final double TEST_LONGITUDE = 30.51;
     public static final int MAP_ZOOM = 17;
+    public static final String FIREBASE_GAS_STATION = "gasStations";
+    public static final String FIREBASE_REFUELS = "refuels";
     private MapView mapView;
     private GoogleMap googleMap;
     private Context context;
@@ -48,6 +57,10 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
     private GasStation gasStationToSave;
     private Refuel oldRefuel;
     private boolean isEdit;
+    private FirebaseDatabase database;
+    private DatabaseReference databaseReference;
+    private long refuelsCount;
+    private long gasStationCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +79,10 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
         saveButton.setOnClickListener(saveButtonClick);
         closeButton.setOnClickListener(closeButtonClick);
 
+        database = FirebaseDatabase.getInstance();
+        databaseReference = database.getReference(getUserId());
+        databaseReference.addValueEventListener(refuelsCountListener);
+
         gasStationToSave = null;
         isEdit = false;
         oldRefuel = null;
@@ -81,9 +98,8 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
             priceEditText.setText(String.valueOf(oldRefuel.getPrice()));
 
             AppDatabase appDatabase = App.getInstance().getAppDatabase();
-            gasStationToSave = appDatabase.gasStationDao().getById(oldRefuel.getGasStationId());
+            gasStationToSave = appDatabase.gasStationDao().getById((int) oldRefuel.getGasStationId());
         }
-
         initGoogleMap(savedInstanceState);
         context = this;
     }
@@ -198,12 +214,14 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
             public void onClick(DialogInterface dialog, int which) {
                 String gasStationAddress = getAddressFromCoordinates(context, latLng.latitude, latLng.longitude);
                 if (gasStationAddress != null) {
-                    GasStation gasStation = new GasStation(String.valueOf(input.getText()), gasStationAddress,
-                            latLng.latitude, latLng.longitude);
-                    AppDatabase appDatabase = App.getInstance().getAppDatabase();
-                    GasStationDao gasStationDao = appDatabase.gasStationDao();
-                    gasStationDao.insert(gasStation);
+                    GasStation gasStation = new GasStation(
+                            getGasStationNextId(),
+                            String.valueOf(input.getText()),
+                            gasStationAddress,
+                            latLng.latitude,
+                            latLng.longitude);
                     gasStationToSave = gasStation;
+                    insertGasStationToDB(gasStationToSave);
 
                     googleMap.addMarker(new MarkerOptions()
                             .position(latLng)
@@ -222,6 +240,26 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
         builder.show();
     }
 
+    private void insertGasStationToDB(GasStation gasStation){
+        AppDatabase appDatabase = App.getInstance().getAppDatabase();
+        GasStationDao gasStationDao = appDatabase.gasStationDao();
+        gasStationDao.insert(gasStation);
+        databaseReference.child(FIREBASE_GAS_STATION).child(String.valueOf(getGasStationNextId())).setValue(gasStation);
+    }
+
+    private void insertRefuelToDB(Refuel refuel){
+        AppDatabase appDatabase = App.getInstance().getAppDatabase();
+        RefuelDao refuelDao = appDatabase.refuelDao();
+        if (isEdit){
+            refuel.setId(oldRefuel.getId());
+            refuelDao.update(refuel);
+            databaseReference.child(FIREBASE_REFUELS).child(String.valueOf(oldRefuel.getId())).setValue(refuel);
+        } else {
+            refuelDao.insert(refuel);
+            databaseReference.child(FIREBASE_REFUELS).child(String.valueOf(getRefuelNextId())).setValue(refuel);
+        }
+    }
+
     private final View.OnClickListener saveButtonClick = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -229,19 +267,14 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
                 if (!fuelSupplierEditText.getText().toString().isEmpty() &&
                         !amountEditText.getText().toString().isEmpty() &&
                         !priceEditText.getText().toString().isEmpty()) {
-                    Refuel refuel = new Refuel(fuelSupplierEditText.getText().toString(),
+                    Refuel refuel = new Refuel(
+                            getRefuelNextId(),
+                            fuelSupplierEditText.getText().toString(),
                             fuelTypeSpinner.getSelectedItem().toString(),
                             Double.parseDouble(amountEditText.getText().toString()),
                             Double.parseDouble(priceEditText.getText().toString()),
                             gasStationToSave.getId());
-                    AppDatabase appDatabase = App.getInstance().getAppDatabase();
-                    RefuelDao refuelDao = appDatabase.refuelDao();
-                    if (isEdit){
-                        refuel.setId(oldRefuel.getId());
-                        refuelDao.update(refuel);
-                    } else {
-                        refuelDao.insert(refuel);
-                    }
+                    insertRefuelToDB(refuel);
                     Intent intent = new Intent(context, MainActivity.class);
                     startActivity(intent);
                 } else {
@@ -260,11 +293,51 @@ public class RefuelEditorActivity extends AppCompatActivity implements OnMapRead
         }
     };
 
+    private final ValueEventListener refuelsCountListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            if (dataSnapshot.exists()){
+                refuelsCount = (dataSnapshot.child(FIREBASE_REFUELS).getChildrenCount());
+            }
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+        }
+    };
+
+    private long getRefuelNextId(){
+        return refuelsCount + 1;
+    }
+
+    private final ValueEventListener gasStationCountListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+            if (dataSnapshot.exists()){
+                gasStationCount = (dataSnapshot.child(FIREBASE_GAS_STATION).getChildrenCount());
+            }
+        }
+
+        @Override
+        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+        }
+    };
+
+    private long getGasStationNextId(){
+        return gasStationCount + 1;
+    }
+
     @Override
     public boolean onMarkerClick(Marker marker) {
         AppDatabase appDatabase = App.getInstance().getAppDatabase();
         GasStationDao gasStationDao = appDatabase.gasStationDao();
         gasStationToSave = gasStationDao.getByName(marker.getTitle());
         return false;
+    }
+
+    public String getUserId() {
+        return FirebaseAuth.getInstance().getCurrentUser().getUid();
     }
 }

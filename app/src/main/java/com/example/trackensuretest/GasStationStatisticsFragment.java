@@ -60,7 +60,7 @@ public class GasStationStatisticsFragment extends PlaceholderFragment{
                 RefuelDao refuelDao = App.getInstance().getAppDatabase().refuelDao();
                 for (int i = 0; i < gasStationList.size(); i++){
                     String gasStationAddress = gasStationList.get(i).getAddress();
-                    String refuelCount = String.valueOf(refuelDao.getCountRefuelsInGasStation(gasStationList.get(i).getId()));
+                    String refuelCount = String.valueOf(refuelDao.getCountRefuelsInGasStation((int) gasStationList.get(i).getId()));
                     String[] elementText = new String[] {gasStationAddress, refuelCount};
                     TableRow tableRow = new TableRow(getActivity());
                     for (int j = 0; j < elementText.length; j++) {
