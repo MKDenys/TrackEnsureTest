@@ -3,5 +3,12 @@
     <string name="tab_text_1">Refuels</string>
     <string name="tab_text_2">Statistics</string>
     <string name="google_maps_api_key">AIzaSyC2rlQfg5B_oZwyf_naWhdakqEjsgM1t3k</string>
+    <string name="auth_message">"Sing in, please, to sync data with remote database"</string>>
+    <string name="fuel_supplier_hint">Fuel supplier</string>
+    <string name="amount_hint">Amount</string>
+    <string name="price_hint">Price</string>
+    <string name="save_button_text">Save</string>
+    <string name="close_button_text">Close</string>
+
 
 </resources>

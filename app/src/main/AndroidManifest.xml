@@ -10,7 +10,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".SignInActivity"></activity>
         <activity android:name=".RefuelEditorActivity" />
         <activity
             android:name=".MainActivity"
@@ -27,13 +26,13 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_api_key" />
 
-        <receiver android:name=".InternetStatusChangeReceiver">
+        <receiver android:name=".utils.InternetStatusChangeReceiver">
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
             </intent-filter>
         </receiver>
 
-        <service android:name=".SyncDBService" />
+        <service android:name=".services.SyncDBService" />
     </application>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />

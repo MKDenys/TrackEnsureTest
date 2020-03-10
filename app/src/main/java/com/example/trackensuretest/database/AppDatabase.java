@@ -1,11 +1,14 @@
-package com.example.trackensuretest;
+package com.example.trackensuretest.database;
 
 import androidx.room.Database;
 import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-@Database(entities = {GasStation.class, Refuel.class}, version = 7)
+import com.example.trackensuretest.models.GasStation;
+import com.example.trackensuretest.models.Refuel;
+
+@Database(entities = {GasStation.class, Refuel.class}, version = 10)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract GasStationDao gasStationDao();
     public abstract RefuelDao refuelDao();
@@ -65,6 +68,27 @@ public abstract class AppDatabase extends RoomDatabase {
                     "amount REAL NOT NULL," +
                     "price REAL NOT NULL," +
                     "gasStationId INTEGER NOT NULL)");
+        }
+    };
+
+    public static final Migration MIGRATION_7_8 = new Migration(7, 8) {
+        @Override
+        public void migrate(final SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE Refuel ADD synced INTEGER DEFAULT 0 NOT NULL");
+        }
+    };
+
+    public static final Migration MIGRATION_8_9 = new Migration(8, 9) {
+        @Override
+        public void migrate(final SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE GasStation ADD synced INTEGER DEFAULT 0 NOT NULL");
+        }
+    };
+
+    public static final Migration MIGRATION_9_10 = new Migration(9, 10) {
+        @Override
+        public void migrate(final SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE Refuel ADD deleted INTEGER DEFAULT 0 NOT NULL");
         }
     };
 }

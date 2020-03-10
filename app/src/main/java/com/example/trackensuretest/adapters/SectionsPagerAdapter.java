@@ -1,4 +1,4 @@
-package com.example.trackensuretest.ui.main;
+package com.example.trackensuretest.adapters;
 
 import android.content.Context;
 
@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.example.trackensuretest.R;
+import com.example.trackensuretest.fragments.PlaceholderFragment;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
